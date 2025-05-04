@@ -87,7 +87,7 @@ dmypy.json
 .env.*
 
 # Local settings
-config.py
+# config.py
 
 # Logs
 *.log
