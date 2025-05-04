@@ -83,8 +83,8 @@ dmypy.json
 *.prof
 
 # dotenv
-.env
-.env.*
+# .env
+# .env.*
 
 # Local settings
 # config.py
