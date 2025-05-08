@@ -33,6 +33,12 @@ def create_app():
     from app.routes.gitlab_merge_request_routes import mr_bp
     app.register_blueprint(mr_bp, url_prefix="/api/gitlab-merge-requests")
 
+    from app.routes.github_token_routes import github_token_bp
+    app.register_blueprint(github_token_bp, url_prefix="/api/github-token")
+
+    from app.routes.github_project_routes import github_repo_bp
+    app.register_blueprint(github_repo_bp, url_prefix="/api/github-repo")
+
 
     swaggerui_blueprint = get_swaggerui_blueprint(
         '/api/docs', '/apidocs/swagger.json', config={'app_name': "User Auth API"}
