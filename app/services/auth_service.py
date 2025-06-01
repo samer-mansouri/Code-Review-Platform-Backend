@@ -35,6 +35,7 @@ class AuthService:
     @staticmethod
     def authenticate(email, password):
         user = User.objects(email=email).first()
+        print(f"Authenticating user: {email}")
         if user and user.check_password(password):
             access_token = create_access_token(identity=str(user.id))
             refresh_token = create_refresh_token(identity=str(user.id))
