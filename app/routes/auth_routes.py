@@ -33,6 +33,7 @@ def login():
     if errors:
         return jsonify(errors), 400
 
+    print(data)
     access, refresh, user = AuthService.authenticate(data['email'], data['password'])
     if not access:
         log_action("anonymous", "failed_login", f"Failed login attempt for {data['email']}")
