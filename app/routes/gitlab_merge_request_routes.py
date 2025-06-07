@@ -9,7 +9,9 @@ mr_bp = Blueprint("gitlab_merge_request", __name__)
 @jwt_required()
 def get_all_merge_requests(project_id):
     user_id = get_jwt_identity()
-    project = GitLabProject.objects(id=project_id, user_id=user_id).first()
+    # project = GitLabProject.objects(id=project_id, user_id=user_id).first()
+    project = GitLabProject.objects(id=project_id).first()
+
     if not project:
         return jsonify({"msg": "Project not found"}), 404
 
@@ -26,7 +28,8 @@ def get_all_merge_requests(project_id):
 @jwt_required()
 def get_merge_request(project_id, iid):
     user_id = get_jwt_identity()
-    project = GitLabProject.objects(id=project_id, user_id=user_id).first()
+    # project = GitLabProject.objects(id=project_id, user_id=user_id).first()
+    project = GitLabProject.objects(id=project_id).first()
     if not project:
         return jsonify({"msg": "Project not found"}), 404
 

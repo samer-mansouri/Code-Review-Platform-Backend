@@ -221,3 +221,75 @@ def fetch_and_store_all_merge_requests_full(project_id):
         "saved": saved,
         "errors": errors
     }), 201
+
+
+@gitlab_project_bp.route("/all", methods=["GET"])
+@jwt_required()
+def get_all_gitlab_projects():
+    projects = GitLabProject.objects()
+    return jsonify(GitLabProjectSchema(many=True).dump(projects)), 200
+
+@gitlab_project_bp.route("/<project_id>/sync", methods=["POST"])
+@jwt_required()
+def sync_gitlab_project(project_id):
+    user_id = get_jwt_identity()
+    project = GitLabProject.objects(id=project_id).first()
+    if not project:
+        return jsonify({"msg": "Project not found"}), 404
+
+    token = GitLabToken.objects(id=project.token_id.id).first()
+    if not token:
+        return jsonify({"msg": "Token not found"}), 404
+
+    # Sync commits
+    commits, commits_error = get_gitlab_commits_with_diffs(project.project_id, token.token, limit=10)
+    stored_commits = []
+
+    if not commits_error:
+        for c in commits:
+            if "error" in c:
+                continue
+            if GitLabCommit.objects(project=project, sha=c["sha"]).first():
+                continue
+            GitLabCommit(
+                project=project,
+                sha=c["sha"],
+                title=c["title"],
+                author_name=c["author_name"],
+                created_at=c["created_at"],
+                diffs=c["diffs"]
+            ).save()
+            stored_commits.append(c["sha"])
+    
+    # Sync MRs
+    mrs, mrs_error = get_gitlab_merge_requests_with_commits_and_diffs(project.project_id, token.token)
+    stored_mrs = []
+
+    if not mrs_error:
+        for mr in mrs:
+            if "error" in mr:
+                continue
+            if GitLabMergeRequest.objects(project=project, iid=mr["iid"]).first():
+                continue
+            GitLabMergeRequest(
+                project=project,
+                iid=mr["iid"],
+                title=mr["title"],
+                description=mr["description"],
+                state=mr["state"],
+                created_at=mr["created_at"],
+                merged_at=mr["merged_at"],
+                source_branch=mr["source_branch"],
+                target_branch=mr["target_branch"],
+                author=mr["author"],
+                commits=mr["commits"]
+            ).save()
+            stored_mrs.append(mr["iid"])
+
+    return jsonify({
+        "msg": "Sync completed",
+        "commits_saved": len(stored_commits),
+        "merge_requests_saved": len(stored_mrs),
+        "commit_errors": bool(commits_error),
+        "mr_errors": bool(mrs_error),
+    }), 200

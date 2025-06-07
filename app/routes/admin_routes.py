@@ -21,7 +21,7 @@ def list_users():
     if email_filter:
         query = query.filter(email__icontains=email_filter)
 
-    paginated = paginate_query(query, request)
+    # paginated = paginate_query(query, request)
     result = [
         {
             "id": str(user.id),
@@ -29,10 +29,12 @@ def list_users():
             "first_name": user.first_name,
             "last_name": user.last_name,
             "role": user.role
-        } for user in paginated['items']
+        } for user in query
     ]
-    log_action(get_jwt_identity(), 'list_users', f"Listed users page {paginated['page']}")
-    return jsonify({"total": paginated['total'], "page": paginated['page'], "limit": paginated['limit'], "users": result})
+    log_action(get_jwt_identity(), 'list_users', f"Listed users")
+    # return jsonify({"total": paginated['total'], "page": paginated['page'], "limit": paginated['limit'], "users": result})
+
+    return jsonify({ "users": result})
 
 @admin_bp.route('/users/<user_id>', methods=['DELETE'])
 @jwt_required()

@@ -229,3 +229,10 @@ def fetch_and_store_all_pull_requests_full(repo_id):
         "saved": saved,
         "errors": errors
     }), 201
+
+
+@github_repo_bp.route("/all", methods=["GET"])
+@jwt_required()
+def get_all_github_repos():
+    repos = GitHubRepo.objects()
+    return jsonify(GitHubRepoSchema(many=True).dump(repos)), 200
