@@ -236,3 +236,55 @@ def fetch_and_store_all_pull_requests_full(repo_id):
 def get_all_github_repos():
     repos = GitHubRepo.objects()
     return jsonify(GitHubRepoSchema(many=True).dump(repos)), 200
+
+
+@github_repo_bp.route("/<repo_id>/pulls", methods=["GET"])
+@jwt_required()
+def get_pull_requests_for_repo(repo_id):
+    user_id = get_jwt_identity()
+    repo = GitHubRepo.objects(id=repo_id, user_id=user_id).first()
+
+    if not repo:
+        return jsonify({"msg": "Repository not found"}), 404
+
+    prs = GitHubPullRequest.objects(repo=repo).order_by("-created_at")
+
+    result = []
+    for pr in prs:
+        result.append({
+            "number": pr.number,
+            "title": pr.title,
+            "state": pr.state,
+            "created_at": pr.created_at,
+            "user_login": pr.user_login,
+        })
+
+    return jsonify(result), 200
+
+@github_repo_bp.route("/<repo_id>/pull/<int:number>", methods=["GET"])
+@jwt_required()
+def get_pull_request_details(repo_id, number):
+    user_id = get_jwt_identity()
+    repo = GitHubRepo.objects(id=repo_id, user_id=user_id).first()
+
+    if not repo:
+        return jsonify({"msg": "Repository not found"}), 404
+
+    pr = GitHubPullRequest.objects(repo=repo, number=number).first()
+    if not pr:
+        return jsonify({"msg": "Pull request not found"}), 404
+
+    return jsonify({
+        "number": pr.number,
+        "title": pr.title,
+        "state": pr.state,
+        "head_ref": pr.head_ref,
+        "base_ref": pr.base_ref,
+        "user_login": pr.user_login,
+        "created_at": pr.created_at,
+        "merged_at": pr.merged_at,
+        "body": pr.body,
+        "commits": pr.commits,
+        "files": pr.files,
+        "reviews": pr.reviews,
+    }), 200
