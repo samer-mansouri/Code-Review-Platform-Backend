@@ -32,7 +32,8 @@ def add_gitlab_token():
 @jwt_required()
 def get_gitlab_tokens():
     user_id = get_jwt_identity()
-    tokens = GitLabToken.objects(user_id=user_id)
+    # tokens = GitLabToken.objects(user_id=user_id)
+    tokens = GitLabToken.objects()
     print(jsonify(GitLabTokenSchema(many=True).dump(tokens)))
     return jsonify(GitLabTokenSchema(many=True).dump(tokens)), 200
 

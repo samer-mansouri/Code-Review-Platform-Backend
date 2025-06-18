@@ -11,17 +11,9 @@ admin_bp = Blueprint('admin', __name__)
 @admin_bp.route('/users', methods=['GET'])
 @jwt_required()
 @role_required('admin')
-def list_users():
-    role_filter = request.args.get('role')
-    email_filter = request.args.get('email')
+def list_developers():
+    developers = User.objects(role="developer")
 
-    query = User.objects
-    if role_filter:
-        query = query.filter(role=role_filter)
-    if email_filter:
-        query = query.filter(email__icontains=email_filter)
-
-    # paginated = paginate_query(query, request)
     result = [
         {
             "id": str(user.id),
@@ -29,12 +21,12 @@ def list_users():
             "first_name": user.first_name,
             "last_name": user.last_name,
             "role": user.role
-        } for user in query
+        } for user in developers
     ]
-    log_action(get_jwt_identity(), 'list_users', f"Listed users")
-    # return jsonify({"total": paginated['total'], "page": paginated['page'], "limit": paginated['limit'], "users": result})
 
-    return jsonify({ "users": result})
+    log_action(get_jwt_identity(), 'list_developers', "Listed developers")
+    return jsonify({"users": result})
+
 
 @admin_bp.route('/users/<user_id>', methods=['DELETE'])
 @jwt_required()
@@ -58,16 +50,31 @@ def create_user():
         raise BadRequest(errors)
     if User.objects(email=data['email']).first():
         return jsonify({"error": "Email already exists"}), 400
+
+    role_value = data.get('role', 'developer')
+    if role_value not in ['admin', 'developer']:
+        return jsonify({"error": "Invalid role"}), 400
+
     user = User(
         email=data['email'],
         first_name=data['first_name'],
         last_name=data['last_name'],
-        role=data.get('role', 'user')
+        role=role_value
     )
     user.set_password(data['password'])
     user.save()
+    result = {
+        "id": str(user.id),
+        "email": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "role": user.role,
+        "created_at": user.created_at.isoformat() if user.created_at else None,
+        "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+        "msg": "User created successfully"
+    }
     log_action(get_jwt_identity(), 'create_user', f"Created user {user.email}")
-    return jsonify({"msg": "User created", "id": str(user.id)}), 201
+    return jsonify(result), 201
 
 @admin_bp.route('/users/<user_id>', methods=['PUT'])
 @jwt_required()
@@ -78,6 +85,9 @@ def update_user(user_id):
         return jsonify({"error": "User not found"}), 404
 
     data = request.get_json()
+    if 'role' in data and data['role'] not in ['admin', 'developer']:
+        return jsonify({"error": "Invalid role"}), 400
+
     user.first_name = data.get("first_name", user.first_name)
     user.last_name = data.get("last_name", user.last_name)
     user.role = data.get("role", user.role)
@@ -85,4 +95,34 @@ def update_user(user_id):
         user.set_password(data['password'])
     user.save()
     log_action(get_jwt_identity(), 'update_user', f"Updated user {user_id}")
-    return jsonify({"msg": "User updated", "id": str(user.id)})
+    result = {
+        "id": str(user.id),
+        "email": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "role": user.role,
+        "created_at": user.created_at.isoformat() if user.created_at else None,
+        "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+        "msg": "User updated successfully"
+    }
+    return jsonify(result)
+
+@admin_bp.route('/users/<user_id>', methods=['GET'])
+@jwt_required()
+@role_required('admin')
+def get_user(user_id):
+    user = User.objects(id=user_id).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    result = {
+        "id": str(user.id),
+        "email": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "role": user.role,
+        "created_at": user.created_at.isoformat() if user.created_at else None,
+        "updated_at": user.updated_at.isoformat() if user.updated_at else None
+    }
+    log_action(get_jwt_identity(), 'get_user', f"Fetched user {user_id}")
+    return jsonify(result)

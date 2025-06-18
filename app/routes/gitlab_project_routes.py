@@ -293,3 +293,17 @@ def sync_gitlab_project(project_id):
         "commit_errors": bool(commits_error),
         "mr_errors": bool(mrs_error),
     }), 200
+
+
+@gitlab_project_bp.route("/<project_id>", methods=["DELETE"])
+@jwt_required()
+def delete_gitlab_project(project_id):
+    user_id = get_jwt_identity()
+
+    project = GitLabProject.objects(id=project_id, user_id=user_id).first()
+    if not project:
+        return jsonify({"msg": "Projet introuvable"}), 404
+
+    project.delete()  # Cascades to commits and MRs
+
+    return jsonify({"msg": "Projet supprimé avec succès avec ses commits et MRs"}), 200

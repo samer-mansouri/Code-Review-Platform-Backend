@@ -202,6 +202,9 @@ def fetch_and_store_all_pull_requests_full(repo_id):
     saved = []
     errors = []
 
+    print("Length of full prs")
+    print(len(full_prs))
+
     for pr_data in full_prs:
         if "error" in pr_data:
             errors.append({"number": pr_data.get("number"), "error": pr_data["error"]})
@@ -288,3 +291,16 @@ def get_pull_request_details(repo_id, number):
         "files": pr.files,
         "reviews": pr.reviews,
     }), 200
+
+@github_repo_bp.route("/<repo_id>", methods=["DELETE"])
+@jwt_required()
+def delete_github_repo(repo_id):
+    user_id = get_jwt_identity()
+    
+    repo = GitHubRepo.objects(id=repo_id, user_id=user_id).first()
+    if not repo:
+        return jsonify({"msg": "Repository not found"}), 404
+
+    repo.delete()  # CASCADE deletes GitHubPullRequest and GitHubCommit
+
+    return jsonify({"msg": "Repository and related data deleted successfully"}), 200

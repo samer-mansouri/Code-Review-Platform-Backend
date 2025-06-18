@@ -42,6 +42,9 @@ def create_app():
     from app.routes.github_pull_request_routes import pr_bp
     app.register_blueprint(pr_bp, url_prefix="/api/github-pull-request")
 
+    from app.routes.stats_routes import stats_bp
+    app.register_blueprint(stats_bp, url_prefix="/api/stats")
+
 
     swaggerui_blueprint = get_swaggerui_blueprint(
         '/api/docs', '/apidocs/swagger.json', config={'app_name': "User Auth API"}

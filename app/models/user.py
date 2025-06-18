@@ -7,7 +7,7 @@ class User(db.Document):
     first_name = db.StringField(required=True)
     last_name = db.StringField(required=True)
     password = db.StringField(required=True)
-    role = db.StringField(choices=['admin', 'user'], default='user')
+    role = db.StringField(choices=['admin', 'developer'], default='developer')
     profile_picture = db.StringField()
     created_at = db.DateTimeField(default=datetime.utcnow)
     updated_at = db.DateTimeField(default=datetime.utcnow)

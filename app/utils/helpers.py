@@ -471,6 +471,7 @@ def get_all_github_pull_requests_full(owner: str, repo: str, token: str, limit: 
         return None, f"Error fetching PR list: {e}"
 
     full_prs = []
+    print("Length of all PRs:", len(all_prs))
     for pr in all_prs:
         number = pr.get("number")
         full_data, err = get_github_pr_full_info(owner, repo, token, number)
