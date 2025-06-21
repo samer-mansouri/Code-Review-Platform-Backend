@@ -9,8 +9,9 @@ pr_bp = Blueprint("/", __name__)
 @jwt_required()
 def get_all_pull_requests(repo_id):
     user_id = get_jwt_identity()
+    print(f"Fetching pull requests for repo_id: {repo_id}, user_id: {user_id}")
     # repo = GitHubRepo.objects(id=repo_id, user_id=user_id).first()
-    repo = GitHubRepo.objects(id=repo_id).first()
+    repo = GitHubRepo.objects(_id=repo_id).first()
     if not repo:
         return jsonify({"msg": "Repository not found"}), 404
 
@@ -36,6 +37,7 @@ def get_pull_request(repo_id, number):
         return jsonify({"msg": "Pull request not found"}), 404
 
     return jsonify({
+        "id": str(pr.id),
         "number": pr.number,
         "title": pr.title,
         "state": pr.state,

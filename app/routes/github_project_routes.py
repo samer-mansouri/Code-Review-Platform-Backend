@@ -21,7 +21,7 @@ def add_github_repo():
     if not repo_url or not token_id:
         return jsonify({"msg": "Missing repository URL or token ID"}), 400
 
-    token_obj = GitHubToken.objects(id=token_id, user_id=user_id).first()
+    token_obj = GitHubToken.objects(id=token_id).first()
     if not token_obj:
         return jsonify({"msg": "Invalid token"}), 404
 
@@ -187,7 +187,7 @@ def fetch_and_save_full_pr(repo_id, number):
 @jwt_required()
 def fetch_and_store_all_pull_requests_full(repo_id):
     user_id = get_jwt_identity()
-    repo = GitHubRepo.objects(id=repo_id, user_id=user_id).first()
+    repo = GitHubRepo.objects(id=repo_id).first()
     if not repo:
         return jsonify({"msg": "Repository not found"}), 404
 
@@ -245,7 +245,7 @@ def get_all_github_repos():
 @jwt_required()
 def get_pull_requests_for_repo(repo_id):
     user_id = get_jwt_identity()
-    repo = GitHubRepo.objects(id=repo_id, user_id=user_id).first()
+    repo = GitHubRepo.objects(id=repo_id).first()
 
     if not repo:
         return jsonify({"msg": "Repository not found"}), 404
@@ -268,7 +268,7 @@ def get_pull_requests_for_repo(repo_id):
 @jwt_required()
 def get_pull_request_details(repo_id, number):
     user_id = get_jwt_identity()
-    repo = GitHubRepo.objects(id=repo_id, user_id=user_id).first()
+    repo = GitHubRepo.objects(id=repo_id).first()
 
     if not repo:
         return jsonify({"msg": "Repository not found"}), 404
@@ -278,6 +278,7 @@ def get_pull_request_details(repo_id, number):
         return jsonify({"msg": "Pull request not found"}), 404
 
     return jsonify({
+        "id": str(pr.id),
         "number": pr.number,
         "title": pr.title,
         "state": pr.state,

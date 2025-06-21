@@ -455,7 +455,7 @@ def get_github_pr_full_info(owner: str, repo: str, token: str, pr_number: int):
         return None, str(e)
 
 
-def get_all_github_pull_requests_full(owner: str, repo: str, token: str, limit: int = 20):
+def get_all_github_pull_requests_full(owner: str, repo: str, token: str, limit: int = 40):
     headers = {
         "Authorization": f"token {token}",
         "Accept": "application/vnd.github.v3+json"

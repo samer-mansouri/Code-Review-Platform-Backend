@@ -38,6 +38,7 @@ def get_merge_request(project_id, iid):
         return jsonify({"msg": "Merge request not found"}), 404
 
     return jsonify({
+        "id": str(mr.id),
         "iid": mr.iid,
         "title": mr.title,
         "description": mr.description,

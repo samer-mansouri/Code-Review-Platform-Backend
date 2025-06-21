@@ -32,7 +32,7 @@ def add_github_token():
 @jwt_required()
 def get_github_tokens():
     user_id = get_jwt_identity()
-    tokens = GitHubToken.objects(user_id=user_id)
+    tokens = GitHubToken.objects()
     return jsonify(GitHubTokenSchema(many=True).dump(tokens)), 200
 
 @github_token_bp.route('/<token_id>', methods=['DELETE'])
