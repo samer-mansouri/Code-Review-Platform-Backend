@@ -226,7 +226,8 @@ def fetch_and_store_all_merge_requests_full(project_id):
 @gitlab_project_bp.route("/all", methods=["GET"])
 @jwt_required()
 def get_all_gitlab_projects():
-    projects = GitLabProject.objects()
+    user_id = get_jwt_identity()
+    projects = GitLabProject.objects(user_id=user_id)
     return jsonify(GitLabProjectSchema(many=True).dump(projects)), 200
 
 @gitlab_project_bp.route("/<project_id>/sync", methods=["POST"])
