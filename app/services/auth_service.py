@@ -4,6 +4,10 @@ from flask import current_app
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
+from flask_mail import Message
+from app.extensions import mail
+from flask import url_for
+from app.utils.token import generate_reset_token
 
 class AuthService:
     @staticmethod
@@ -62,3 +66,18 @@ class AuthService:
         user.updated_at = datetime.utcnow()
         user.save()
         return True, None
+    
+    @staticmethod
+    def send_reset_email(user):
+        token = generate_reset_token(user.email)
+        frontend_base = os.getenv("FRONTEND_BASE_URL", "http://localhost:3000")
+        reset_link = f"{frontend_base}/reset/{token}"
+        msg = Message("Password Reset Request",
+                    sender="noreply@example.com",
+                    recipients=[user.email])
+        msg.body = f"""To reset your password, visit the following link:
+        {reset_link}
+
+        If you did not make this request, simply ignore this email.
+        """
+        mail.send(msg)

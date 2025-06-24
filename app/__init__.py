@@ -1,11 +1,13 @@
 from flask import Flask, jsonify
-from app.extensions import db, jwt, ma
+from app.extensions import db, jwt, ma, mail
 from config import Config
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask_cors import CORS
 from app.utils.errors import register_error_handlers
 from flasgger import Swagger
 from app.docs.swagger_config import swagger_template, swagger_config
+import os
+from flask import send_from_directory, current_app
 
 
 def create_app():
@@ -15,6 +17,7 @@ def create_app():
     db.init_app(app)
     jwt.init_app(app)
     ma.init_app(app)
+    mail.init_app(app)
     CORS(app)
     Swagger(app, template=swagger_template, config=swagger_config)
 
@@ -50,6 +53,14 @@ def create_app():
         '/api/docs', '/apidocs/swagger.json', config={'app_name': "User Auth API"}
     )
     app.register_blueprint(swaggerui_blueprint, url_prefix='/api/docs')
+
+    @app.route('/uploads/<filename>')
+    def uploaded_file(filename):
+        upload_folder = os.path.join(app.root_path, 'uploads')
+        if not os.path.exists(upload_folder):
+            return jsonify({"error": "Upload folder does not exist"}), 404
+        return send_from_directory(upload_folder, filename)
+    
 
     register_error_handlers(app)
 

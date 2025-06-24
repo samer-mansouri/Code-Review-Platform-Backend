@@ -3,6 +3,8 @@ from app.models.log import Log
 from flask import request
 import requests
 from dateutil import parser as date_parser
+import os
+
 
 def paginate_query(queryset, request):
     page = int(request.args.get('page', 1))
@@ -15,6 +17,11 @@ def paginate_query(queryset, request):
 def log_action(user_id, action, details):
     Log(user_id=str(user_id), action=action, details=details).save()
 
+
+def allowed_file(filename):
+    from flask import current_app
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
 
 def is_gitlab_token_valid(token: str) -> bool:
     headers = {

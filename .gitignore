@@ -94,3 +94,5 @@ dmypy.json
 logs/
 
 mongo_data/
+app/uploads/
+app/static/uploads/
